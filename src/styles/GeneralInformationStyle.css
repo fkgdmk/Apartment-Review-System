@@ -1,0 +1,75 @@
+
+
+.GeneralInformation {
+  }
+  
+  .col-2 {
+    display: grid;
+    grid-template-columns: 50% 50%;
+  }
+  
+
+  
+  .present-container {
+    display: grid;
+    grid-template-columns: 45% 45% 10%;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .present-container div:nth-child(-n+2) {
+    margin-right: 10px;
+  }
+  
+  .left {
+    width: 95%;
+  }
+  
+  .left div, .right div {
+    margin-bottom: 5px;
+  }
+  
+  .ms-ChoiceFieldGroup-flexContainer {
+    display: flex;
+  }
+  
+  .ms-ChoiceFieldGroup-flexContainer div {
+    margin-right: 30px;
+  }
+  
+  label {
+    font-size: 14px;
+      font-weight: 600;
+      color: rgb(50, 49, 48);
+  }
+  
+  hr {
+    border-top: 1px solid #e19304;
+    margin-top: 30px;
+    margin-bottom: 10px;
+  }
+  
+  .reconstruction-container {
+    display: flex;
+    align-items: center;
+    margin-left: 50px;
+  }
+  
+  .approval-section {
+    display: grid;
+    grid-template-columns: 30% 40% 30%;
+    height: 90px;
+  }
+  
+  .checkboxes div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
+  
+  @media (prefers-reduced-motion: no-preference) {
+  
+  }
+  
+  

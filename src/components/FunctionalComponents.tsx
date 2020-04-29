@@ -3,10 +3,11 @@ import '../App.css';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Checkbox } from 'office-ui-fabric-react/lib/Checkbox';
 import { DatePicker, DayOfWeek } from 'office-ui-fabric-react/lib/DatePicker';
-import { DayPickerStrings, onFormatDate} from '../utilities/Date';
-  
+import { DayPickerStrings, onFormatDate } from '../utilities/Date';
+import { IconButton, IIconProps } from 'office-ui-fabric-react';
 
-export const PersonRow = function (props: any) {
+
+export const PersonInputRow = function (props: any) {
     const { onChangeName, onChangeMail, wantsReport, onChecked } = props;
     return (
         <div>
@@ -60,5 +61,81 @@ export const CustomDatePicker = function (props: any) {
             value={value}
             onSelectDate={onSelectDate}
         />
+    );
+}
+
+export const ArrowButton = function (props: any) {
+    const { arrowDirection, title, onClick } = props;
+
+    const forwardIcon: IIconProps = { iconName: arrowDirection };
+
+    return (
+        <IconButton
+            iconProps={forwardIcon}
+            title={title}
+            ariaLabel={title}
+            onClick={onClick}
+            styles={{
+                icon: { fontSize: 37, color: '#e19304' },
+                root: { width: 60, height: 50 }
+            }}
+        />
+    );
+}
+
+export const PlusIconButton = function (props: any) {
+    const { onClick, title } = props;
+    const plusIcon: IIconProps = { iconName: 'CirclePlus' };
+
+    return (
+        <IconButton
+            iconProps={plusIcon}
+            title={title}
+            ariaLabel="Plus"
+            onClick={onClick}
+            styles={
+                {
+                    icon: {
+                        color: '#e19304',
+                        fontSize: '20px'
+                    }
+                }}
+        />
+    );
+}
+
+export const BottomNavigation = function (props: any) {
+    const { component, forwardArrowOnClick, backArrowOnClick } = props;
+    const forwardBtn: JSX.Element = <ArrowButton
+        title={'Næste'}
+        arrowDirection={'Forward'}
+        onClick={forwardArrowOnClick}
+    />;
+
+    const backBtn: JSX.Element = <ArrowButton
+        title={'Forrige'}
+        arrowDirection={'Back'}
+        onClick={backArrowOnClick}
+    />;
+
+    if (component === 'GeneralInformation') {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {forwardBtn}
+            </div>
+        );
+    } else if (component === 'Maintenance') {
+        console.log("test")
+        return (
+            <div>
+                {backBtn}
+            </div>
+        );
+    }
+    return (
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            {backBtn}
+            {forwardBtn}
+        </div>
     );
 }

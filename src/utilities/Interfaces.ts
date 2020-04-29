@@ -14,10 +14,17 @@ export interface IGeneralInformation {
     owner: string;
     isBuyer: boolean;
     caseNumber: string;
-    reviewDate: Date | null;
+    reviewDate: Date;
     lastReportDate: Date
     takeOverDate: Date;
     persons: IPerson[];
+    movedOut: boolean;
+    reconstruction: boolean;
+    reconstructionByCurrentOwner: boolean;
+    reconstructionByFormerOwner: boolean;
+    approvals: IApproval[];
+    isUpdate: boolean;
+    remarks: string[]; 
 }
 
 export interface IPerson {
