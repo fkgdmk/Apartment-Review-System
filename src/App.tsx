@@ -3,23 +3,24 @@ import './App.css';
 import { initializeIcons } from '@uifabric/icons';
 import GeneralInformation from './components/GeneralInformation';
 import Maintenance from './components/Maintenance';
-import Subjects from './components/Subjects';
+import Improvements from './components/Improvements';
 import { Provider } from "react-redux";
 import { createStore } from 'redux';
-import { IGeneralInformation } from './utilities/Interfaces';
+import { IGeneralInformation, IImprovements } from './utilities/Interfaces';
 import { BrowserRouter, Route, Switch, RouteComponentProps } from 'react-router-dom';
 
 initializeIcons();
 
 export interface IState {
   generalInformation: IGeneralInformation;
+  improvements: IImprovements;
 }
 
 export const fallBackGeneralInformationObj: IGeneralInformation = {
   housingUnion: "",
   address: "",
   owner: "",
-  isBuyer: false,
+  isBuyer: true,
   caseNumber: "",
   reviewDate: new Date(),
   lastReportDate: new Date(),
@@ -44,7 +45,14 @@ export const fallBackGeneralInformationObj: IGeneralInformation = {
 }
 
 const initialState: IState = {
-  generalInformation: fallBackGeneralInformationObj
+  generalInformation: fallBackGeneralInformationObj,
+  improvements : {
+    general: [],
+    kitchen: [],
+    bathroom: [],
+    hall: [],
+    livingroom: []
+  }
 }
 
 function reducer(state: IState = initialState, action: any): IState {
@@ -57,6 +65,14 @@ function reducer(state: IState = initialState, action: any): IState {
           [action.property]: action.payload
         }
       };
+    case "ADD IMPROVEMENT":
+      return {
+        ...state,
+        improvements : {
+          ...state.improvements,
+          [action.property]: action.payload
+        }
+      }
     default:
       return state;
   }
@@ -81,7 +97,7 @@ export default class App extends React.Component {
           <Switch>
             <Route path={'/general-information'} exact component={GeneralInformation} />
             <Route path={'/maintenance'} exact component={Maintenance} />
-            <Route path={'/subjects'} exact component={Subjects} />
+            <Route path={'/subjects'} exact component={Improvements} />
           </Switch>
         </BrowserRouter>
       </Provider>

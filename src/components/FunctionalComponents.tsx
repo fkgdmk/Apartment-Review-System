@@ -8,12 +8,12 @@ import { IconButton, IIconProps } from 'office-ui-fabric-react';
 
 
 export const PersonInputRow = function (props: any) {
-    const { onChangeName, onChangeMail, wantsReport, onChecked } = props;
+    const { onChangeName, onChangeMail, wantsReport, onChecked, name, mail } = props;
     return (
         <div>
             <div className="present-container">
-                <TextField placeholder="Fulde navn" onChange={onChangeName} />
-                <TextField placeholder="Mail" onChange={onChangeMail} />
+                <TextField placeholder="Fulde navn" value={name} onChange={onChangeName} />
+                <TextField placeholder="Mail" value={mail} onChange={onChangeMail} />
                 <Checkbox label="Ønsker rapport" checked={wantsReport} onChange={onChecked} />
             </div>
         </div>

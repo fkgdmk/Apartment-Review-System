@@ -7,7 +7,7 @@ import { Toggle } from 'office-ui-fabric-react/lib/Toggle';
 import { PersonInputRow, ApprovalRow, CustomDatePicker, BottomNavigation, PlusIconButton } from './FunctionalComponents'
 import { IApproval, IPerson } from '../utilities/Interfaces';
 import { connect } from 'react-redux';
-import { IState, store } from '../App';
+import { IState } from '../App';
 import { RouteComponentProps } from 'react-router-dom';
 
 interface IGeneralInformationProps extends IState, RouteComponentProps {
@@ -15,14 +15,14 @@ interface IGeneralInformationProps extends IState, RouteComponentProps {
 }
 
 const options: IChoiceGroupOption[] = [
-  { key: 'buyer', text: 'Køber' },
+  { key: 'buyer', text: 'Køber' }, 
   { key: 'seller', text: 'Sælger' },
 ];
 
 class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
   render() {
     console.log("render");
-    const { address, caseNumber, housingUnion, owner, reconstruction, reviewDate, lastReportDate, takeOverDate, remarks } = this.props.generalInformation;
+    const { address, caseNumber, housingUnion, owner, reconstruction, reviewDate, lastReportDate, takeOverDate, remarks, isBuyer } = this.props.generalInformation;
     return (
       <div className="GeneralInformation">
         <div className="col-2">
@@ -31,7 +31,7 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
             <TextField key={2} label="LEJLIGHEDENS ADRESSE" value={address} onChange={event => this.updateTextField('address', (event.target as HTMLInputElement).value)} />
             <TextField key={3} label="ANDELSHAVER" multiline value={owner} onChange={event => this.updateTextField('owner', (event.target as HTMLInputElement).value)} />
             <div>
-              <ChoiceGroup options={options} onChange={(event, option) => this.props.update('isBuyer', option?.key === 'buyer' ? true : false)} />
+              <ChoiceGroup options={options} defaultSelectedKey={isBuyer ? 'buyer' : 'seller'} onChange={(event, option) => this.props.update('isBuyer', option?.key === 'buyer' ? true : false)} />
             </div>
           </div>
           <div className="right">
@@ -82,7 +82,7 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
   }
 
   private createApprovalRows(): JSX.Element {
-    const approvals: IApproval[] = store.getState().generalInformation.approvals;
+    const approvals: IApproval[] = this.props.generalInformation.approvals;
     return (
       <div>
         {approvals.map((approval: IApproval, idx: number) => {
@@ -107,7 +107,7 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
   }
 
   private createPersonRows(isPresent: boolean): JSX.Element {
-    const persons: IPerson[] = store.getState().generalInformation.persons;
+    const persons: IPerson[] = this.props.generalInformation.persons;
     return (
       <div>
         {persons.map((row: IPerson, idx: number) => {
@@ -116,6 +116,8 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
               <PersonInputRow
                 key={idx}
                 wantsReport={row.wantsReport}
+                name={row.name}
+                mail={row.mail}
                 onChecked={() => this.onPersonsChecked(idx)}
                 onChangeMail={(e: any) => this.updatePersonValue(e, idx, 'mail')}
                 onChangeName={(e: any) => this.updatePersonValue(e, idx, 'name')}
@@ -132,44 +134,44 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
   }
 
   private updateRemarks(e: any, idx: number) {
-    const remarks: any = [...store.getState().generalInformation.remarks];
+    const remarks: any = [...this.props.generalInformation.remarks];
     remarks[idx] = e.target.value;
     this.props.update('remarks', remarks);
   }
 
   private addRemarkRow = () => {
-    const remarks = [...store.getState().generalInformation.remarks, ''];
+    const remarks = [...this.props.generalInformation.remarks, ''];
     this.props.update('remarks', remarks);
   }
 
   private updateApprovalRemark(e: any, idx: number) {
-    const approvals: IApproval[] = [...store.getState().generalInformation.approvals];
+    const approvals: IApproval[] = [...this.props.generalInformation.approvals];
     approvals[idx].remark = e.target.value;
 
     this.props.update('approvals', approvals);
   }
 
   private updateApprovalCheckbox(idx: number, property: string) {
-    const approvals: any = [...store.getState().generalInformation.approvals];
+    const approvals: any = [...this.props.generalInformation.approvals];
     approvals[idx][property] = !approvals[idx][property]
     this.props.update('approvals', approvals);
   }
 
   private addPersonRow = (isPresent: boolean) => {
-    const persons: IPerson[] = [...store.getState().generalInformation.persons,
+    const persons: IPerson[] = [...this.props.generalInformation.persons,
     { name: '', mail: '', wantsReport: false, present: isPresent }
     ];
     this.props.update('persons', persons);
   }
 
   private onPersonsChecked = (idx: number, ) => {
-    const persons: IPerson[] = [...store.getState().generalInformation.persons];
+    const persons: IPerson[] = [...this.props.generalInformation.persons];
     persons[idx].wantsReport = !persons[idx].wantsReport;
     this.props.update('persons', persons);
   }
 
   private updatePersonValue = (e: any, idx: number, property: string) => {
-    const persons: any = [...store.getState().generalInformation.persons];
+    const persons: any = [...this.props.generalInformation.persons];
     persons[idx][property] = e.target.value;
     this.props.update('persons', persons);
   }

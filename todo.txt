@@ -1,0 +1,2 @@
+- GeneralInformation component renderer to gange
+- Bugs på GeneralInformation side (bemærkning til godkendelser forsvinder)
