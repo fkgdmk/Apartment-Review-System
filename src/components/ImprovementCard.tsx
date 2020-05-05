@@ -4,8 +4,9 @@ import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import '../styles/ImprovementsStyle.css';
 import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/ChoiceGroup';
 import { Checkbox } from 'office-ui-fabric-react/lib/Checkbox';
-import { IImprovement } from '../utilities/Interfaces';
-
+import { IImprovement, ITakenOver, ICalculated } from '../utilities/Interfaces';
+import { Estimated, Invoice, Materials, TakenOver, Calculated, ITakenOverProps, IExpenseFieldsProps, ICalculatedFunctions, ITakenOverFunctions } from './ImprovementComponents';
+import { IImprovementDocumentation } from '../utilities/Interfaces';
 
 const options: IChoiceGroupOption[] = [
     { key: 'improvement', text: 'Forbedring' },
@@ -18,7 +19,12 @@ const impairmentCurveOptions: IChoiceGroupOption[] = [
     { key: '30', text: '30år' },
     { key: '50', text: '50år' },
 ];
-interface IImprovementCard {
+
+export interface ImprovementTypeFunctions extends ICalculatedFunctions, ITakenOverFunctions {
+
+}
+
+interface IImprovementCardProps {
     improvement: IImprovement;
     onChangeSubject: (e: any) => void;
     onChangeExtent: (e: any) => void;
@@ -31,13 +37,16 @@ interface IImprovementCard {
     onChangeCalculatedValue: () => void;
     onChangeInvoiceValue: () => void;
     onChangeOwnWorkValue: () => void;
-    onChangeImpairementCurveValue: (e: any, option : any) => void;
+    onChangeImpairementCurveValue: (e: any, option: any) => void;
+    ImprovementTypeOnChangeFunctions : ImprovementTypeFunctions;
 }
 
-export const ImprovementCard = function (props: IImprovementCard) {
+export const ImprovementCard = function (props: IImprovementCardProps) {
     const { improvement, onChangeSubject, onChangeExtent, onChangeYear, onChangeMonth, onChangeIsImprovement,
         onChangeMaterialsValue, onChangeEstimatedValue, onChangeTakenOverValue, onChangeCalculatedValue, onChangeInvoiceValue,
-        onChangeOwnWorkValue, onChangeImpairementCurveValue } = props;
+        onChangeOwnWorkValue, onChangeImpairementCurveValue, ImprovementTypeOnChangeFunctions} = props;
+
+    console.log(improvement)
     return (
         <div className="card-container">
             <div className="top-card">
@@ -67,8 +76,10 @@ export const ImprovementCard = function (props: IImprovementCard) {
                             <Checkbox label="Faktura" checked={improvement.documentation.invoice} onChange={onChangeInvoiceValue} />
                         </div>
                         <div className="checkbox-row">
-                            <Checkbox label="Materialer" checked={improvement.documentation.materials} onChange={onChangeMaterialsValue} />
-                            <Checkbox label="Eget arbejde" checked={improvement.documentation.ownWork} onChange={onChangeOwnWorkValue} />
+                            <Checkbox label="Materialer"
+                                checked={improvement.documentation.estimated || improvement.documentation.calculated ? true : false}
+                                onChange={onChangeMaterialsValue} />
+                            <Checkbox label="Eget arbejde" checked={improvement.documentation.calculated} onChange={onChangeOwnWorkValue} />
                         </div>
                     </div>
                     <div>
@@ -77,24 +88,51 @@ export const ImprovementCard = function (props: IImprovementCard) {
                     </div>
                 </div>
             </div>
-            <div className="own-work">
-                <div>
-                    <TextField label="t/enh." type="number" onChange={event => { }} />
-                    <TextField label="Timer" type="number" onChange={event => { }} />
-                </div>
-                <div>
-                    <TextField label="Matr. pris" type="number" placeholder={'kr.'} onChange={event => { }} />
-                    <TextField label="Timepris" type="number" placeholder={'kr.'} onChange={event => { }} />
-                </div>
-                <div>
-                    <TextField label="Matr. udgift" type="number" placeholder={'kr.'} onChange={event => { }} />
-                    <TextField label="Samlet udgift" type="number" placeholder={'kr.'} onChange={event => { }} />
-                    <TextField label="Beregnet værdi" type="number" placeholder={'kr.'} onChange={event => { }} />
-                </div>
-            </div>
+            {returnImprovementTypeComponent(improvement, ImprovementTypeOnChangeFunctions)}
         </div>
     );
 }
+
+const returnImprovementTypeComponent = function (imp: IImprovement, ImprovementTypeOnChangeFunctions: ImprovementTypeFunctions): JSX.Element | null {
+    const documentation: IImprovementDocumentation = imp.documentation;
+
+    const expenseFieldsProps : IExpenseFieldsProps = {
+        calculatedValue: imp.improvementType.calculatedValue,
+        materialsExpense: imp.improvementType.materialsExpense,
+        totalExpense: imp.improvementType.totalExpense
+    }
+
+    if (documentation.calculated) {
+        return <Calculated
+            hourPrUnit={imp.improvementType.hourPrUnit}
+            hourPrice={imp.improvementType.hourPrice}
+            hours={imp.improvementType.hours}
+            impairmentPercentage={imp.improvementType.impairmentPercentage}
+            materialPrice={imp.improvementType.materialPrice}
+            ExpenseFieldsProps={expenseFieldsProps}
+            onChangeHourPrUnit={ImprovementTypeOnChangeFunctions.onChangeHourPrUnit}
+            onChangeHours={ImprovementTypeOnChangeFunctions.onChangeHours}
+            onChangeHourPrice={ImprovementTypeOnChangeFunctions.onChangeHourPrice}
+            onChangeImpairmentPercentage={ImprovementTypeOnChangeFunctions.onChangeImpairmentPercentage}
+            onChangeMaterialPrice={ImprovementTypeOnChangeFunctions.onChangeMaterialPrice}
+        />;
+    } else if (documentation.takenOver) {
+        return <TakenOver
+            impairmentPercentage={imp.improvementType.impairmentPercentage}
+            takeOverImpairmentPercentage={imp.improvementType.takeOverImpairmentPercentage}
+            onChangeImpairmentPercentage={ImprovementTypeOnChangeFunctions.onChangeImpairmentPercentage}
+            onChangeTakeOverImpairmentPercentage={ImprovementTypeOnChangeFunctions.onChangeTakeOverImpairmentPercentage}
+            ExpenseFieldsProps={expenseFieldsProps}
+        />;
+    } else if (documentation.estimated) {
+        return <Estimated />;
+    } else if (documentation.invoice) {
+        return <Invoice />;
+    }
+
+    return null;
+}
+
 
 const setImpairmentCurve = function (year: number, value: number) {
     return year === value ? true : false;

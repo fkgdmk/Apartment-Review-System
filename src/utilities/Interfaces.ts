@@ -44,7 +44,6 @@ export interface IImprovements {
 
 export interface IImprovement {
     subject : string;
-    // area: string;
     extent : number | string;
     purchased: { 
         month: number | string; 
@@ -54,6 +53,29 @@ export interface IImprovement {
     isImprovement: boolean;
     documentation: IImprovementDocumentation;
     impairmentCurve: number;
+    improvementType : IImprovementType;
+}
+
+export interface IImprovementType extends ICalculated, ITakenOver, IExpenses {
+}
+
+export interface ICalculated {
+    hours: number | null;
+    hourPrice: number;
+    materialPrice: number;
+    hourPrUnit : number | null;
+    impairmentPercentage: number | null;
+}
+
+export interface ITakenOver {
+    takeOverImpairmentPercentage: number | null;
+    impairmentPercentage: number | null;
+}
+
+export interface IExpenses {
+    materialsExpense: number;
+    totalExpense: number;
+    calculatedValue: number;
 }
 
 export interface IImprovementDocumentation {

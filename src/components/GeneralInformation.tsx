@@ -75,7 +75,7 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
         <PlusIconButton title={'Ny bemærkning'} onClick={this.addRemarkRow} />
         <BottomNavigation 
           component={'GeneralInformation'}
-          forwardArrowOnClick={() => this.props.history.push('/subjects')}
+          forwardArrowOnClick={() => this.props.history.push('/improvements')}
         />
       </div>
     );

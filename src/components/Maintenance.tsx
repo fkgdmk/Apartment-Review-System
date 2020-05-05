@@ -11,10 +11,10 @@ export default class Maintenance extends React.Component<IMaintenanceProps, {}> 
     render() {
         return (
             <div>
-                Hello
+                Hellos
                 <BottomNavigation
                     component={'Maintenance'}
-                    backArrowOnClick={() => this.props.history.push('/subjects')}
+                    backArrowOnClick={() => this.props.history.push('/improvements')}
                 />
             </div>
         );

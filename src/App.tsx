@@ -97,7 +97,7 @@ export default class App extends React.Component {
           <Switch>
             <Route path={'/general-information'} exact component={GeneralInformation} />
             <Route path={'/maintenance'} exact component={Maintenance} />
-            <Route path={'/subjects'} exact component={Improvements} />
+            <Route path={'/improvements'} exact component={Improvements} />
           </Switch>
         </BrowserRouter>
       </Provider>
