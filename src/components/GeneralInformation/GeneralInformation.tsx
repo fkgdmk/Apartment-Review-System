@@ -1,13 +1,13 @@
 import React from 'react';
-import '../styles/GeneralInformationStyle.css';
+import '../../styles/GeneralInformationStyle.css';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Checkbox } from 'office-ui-fabric-react/lib/Checkbox';
 import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/ChoiceGroup';
 import { Toggle } from 'office-ui-fabric-react/lib/Toggle';
-import { PersonInputRow, ApprovalRow, CustomDatePicker, BottomNavigation, PlusIconButton } from './FunctionalComponents'
-import { IApproval, IPerson } from '../utilities/Interfaces';
+import { PersonInputRow, ApprovalRow, CustomDatePicker, BottomNavigation, PlusIconButton } from '../FunctionalComponents'
+import { IApproval, IPerson } from '../../utilities/Interfaces';
 import { connect } from 'react-redux';
-import { IState } from '../App';
+import { IState } from '../../App';
 import { RouteComponentProps } from 'react-router-dom';
 
 interface IGeneralInformationProps extends IState, RouteComponentProps {

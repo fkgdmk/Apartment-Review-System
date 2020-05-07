@@ -47,7 +47,7 @@ export interface IImprovement {
     extent : number | string;
     purchased: { 
         month: number | string; 
-        year: number | string;
+        year: number | null;
     },
     age: number | string;
     isImprovement: boolean;
@@ -60,22 +60,23 @@ export interface IImprovementType extends ICalculated, ITakenOver, IExpenses {
 }
 
 export interface ICalculated {
-    hours: number | null;
+    hours: number;
     hourPrice: number;
     materialPrice: number;
     hourPrUnit : number | null;
-    impairmentPercentage: number | null;
+    impairmentPercentage: number;
 }
 
 export interface ITakenOver {
     takeOverImpairmentPercentage: number | null;
-    impairmentPercentage: number | null;
+    impairmentPercentage: number;
 }
 
 export interface IExpenses {
-    materialsExpense: number;
+    materialsExpense?: number;
     totalExpense: number;
     calculatedValue: number;
+    originalPurchasedExpense? : number;
 }
 
 export interface IImprovementDocumentation {
@@ -85,4 +86,32 @@ export interface IImprovementDocumentation {
     calculated : boolean;
     materials : boolean;
     ownWork : boolean;
+}
+
+export interface IMaintenanceAreas {
+    general: IMaintenanceArea[];
+    kitchen: IMaintenanceArea[];
+    bathroom: IMaintenanceArea[];
+    hall: IMaintenanceArea[];
+    livingroom: IMaintenanceArea[];
+}
+
+export interface IMaintenanceArea {
+    title: string;
+    condition: IMaintenanceCondtion;
+    payedBy : {
+        ab: boolean,
+        seller: boolean
+    }
+    sellersAmount : {
+        detained: number,
+        deduction: number
+    }
+    remark: string;
+}
+
+export interface IMaintenanceCondtion {
+    approved: boolean;
+    defective: boolean;
+    bad: boolean;
 }

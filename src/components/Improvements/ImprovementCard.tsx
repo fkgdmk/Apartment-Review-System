@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
-import '../styles/ImprovementsStyle.css';
+import '../../styles/ImprovementsStyle.css';
 import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/ChoiceGroup';
 import { Checkbox } from 'office-ui-fabric-react/lib/Checkbox';
-import { IImprovement, ITakenOver, ICalculated } from '../utilities/Interfaces';
-import { Estimated, Invoice, Materials, TakenOver, Calculated, ITakenOverProps, IExpenseFieldsProps, ICalculatedFunctions, ITakenOverFunctions } from './ImprovementComponents';
-import { IImprovementDocumentation } from '../utilities/Interfaces';
+import { IImprovement } from '../../utilities/Interfaces';
+import { Estimated, Invoice, TakenOver, Calculated, IExpenseFieldsProps, ICalculatedFunctions, ITakenOverFunctions } from './ImprovementComponents';
+import { IImprovementDocumentation } from '../../utilities/Interfaces';
 
 const options: IChoiceGroupOption[] = [
     { key: 'improvement', text: 'Forbedring' },
@@ -56,9 +56,9 @@ export const ImprovementCard = function (props: IImprovementCardProps) {
                         <TextField label="Omfang" value={improvement.extent.toString()} placeholder={'m2'} type="number" onChange={onChangeExtent} />
                         <div className='purchased'>
                             <TextField label="Anskaffet" value={improvement.purchased.month.toString()} placeholder={'mm'} onChange={onChangeMonth} />
-                            <TextField placeholder={'åååå'} value={improvement.purchased.year.toString()} type="number" onChange={onChangeYear} />
+                            <TextField placeholder={'åååå'} value={improvement.purchased.year?.toString()} type="number" onChange={onChangeYear} />
                         </div>
-                        <div>
+                        <div> 
                             <TextField label="Alder" value={improvement.age.toString()} disabled onChange={event => { }} />
                         </div>
                     </div>
@@ -99,7 +99,8 @@ const returnImprovementTypeComponent = function (imp: IImprovement, ImprovementT
     const expenseFieldsProps : IExpenseFieldsProps = {
         calculatedValue: imp.improvementType.calculatedValue,
         materialsExpense: imp.improvementType.materialsExpense,
-        totalExpense: imp.improvementType.totalExpense
+        totalExpense: imp.improvementType.totalExpense,
+        originalPurchasedExpense: imp.improvementType.originalPurchasedExpense
     }
 
     if (documentation.calculated) {
@@ -131,9 +132,4 @@ const returnImprovementTypeComponent = function (imp: IImprovement, ImprovementT
     }
 
     return null;
-}
-
-
-const setImpairmentCurve = function (year: number, value: number) {
-    return year === value ? true : false;
 }

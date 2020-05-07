@@ -1,19 +1,21 @@
 import React from 'react';
 import './App.css';
 import { initializeIcons } from '@uifabric/icons';
-import GeneralInformation from './components/GeneralInformation';
-import Maintenance from './components/Maintenance';
-import Improvements from './components/Improvements';
+import GeneralInformation from './components/GeneralInformation/GeneralInformation';
+import Maintenance from './components/Maintenance/Maintenance';
+import Improvements from './components/Improvements/Improvements';
 import { Provider } from "react-redux";
 import { createStore } from 'redux';
-import { IGeneralInformation, IImprovements } from './utilities/Interfaces';
+import { IGeneralInformation, IImprovements, IMaintenanceAreas } from './utilities/Interfaces';
 import { BrowserRouter, Route, Switch, RouteComponentProps } from 'react-router-dom';
+import { populateGeneralArray } from './utilities/HelperFunctions';
 
 initializeIcons();
 
 export interface IState {
   generalInformation: IGeneralInformation;
   improvements: IImprovements;
+  maintenanceAreas: IMaintenanceAreas;
 }
 
 export const fallBackGeneralInformationObj: IGeneralInformation = {
@@ -52,6 +54,13 @@ const initialState: IState = {
     bathroom: [],
     hall: [],
     livingroom: []
+  },
+  maintenanceAreas: {
+    general: populateGeneralArray('general'),
+    kitchen: populateGeneralArray('kitchen'),
+    bathroom: populateGeneralArray('bathroom'),
+    hall: populateGeneralArray('hall'),
+    livingroom: populateGeneralArray('livingroom')
   }
 }
 
@@ -71,6 +80,14 @@ function reducer(state: IState = initialState, action: any): IState {
         improvements : {
           ...state.improvements,
           [action.property]: action.payload
+        }
+      }
+    case "UPDATE MAINTENANCE":
+      return {
+        ...state,
+        maintenanceAreas : {
+          ...state.maintenanceAreas,
+          [action.property] : action.payload
         }
       }
     default:

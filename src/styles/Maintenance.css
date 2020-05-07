@@ -1,0 +1,50 @@
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 0.5fr 1fr 2fr;
+    column-gap: 3px;
+    margin-bottom: 10px;
+}
+
+.top-headers {
+    margin-top: 20px;
+}
+
+.top-headers div {
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+}
+
+.container div {
+    align-items: center;
+}
+
+.condition {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.condition div {
+    display: flex;
+    justify-content: center;
+}
+
+.payedBy, .title {
+    display: flex;
+    justify-content: space-around;
+}
+
+.title {
+    justify-content: start;
+}
+
+.sellersAmount {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 3px;
+}
+
+.headings {
+    font-size: 9px;
+}

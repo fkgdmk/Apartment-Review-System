@@ -1,16 +1,14 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
-import { BottomNavigation, PlusIconButton } from './FunctionalComponents'
+import { BottomNavigation, PlusIconButton } from '../FunctionalComponents'
 import { Pivot, PivotItem, PivotLinkSize } from 'office-ui-fabric-react/lib/Pivot';
-import { colors } from '../utilities/colors';
-import '../styles/ImprovementsStyle.css';
+import { colors } from '../../utilities/colors';
+import '../../styles/ImprovementsStyle.css';
 import { ImprovementCard, ImprovementTypeFunctions } from './ImprovementCard';
-import { IState, store } from '../App';
-// import { IGeneralImprovement } from '../utilities/Interfaces';
+import { IState } from '../../App';
 import { connect } from 'react-redux';
-import { IImprovement, IImprovements, IImprovementType } from '../utilities/Interfaces';
-import { ETIME } from 'constants';
-
+import { IImprovement } from '../../utilities/Interfaces';
+import { ImpairmentTable, IImpairmentResponse } from '../../utilities/TableReader';
 interface IImprovementsProps extends RouteComponentProps, IState {
     addImprovement: (value: any, area: string) => {};
 }
@@ -31,6 +29,7 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
     render() {
         const { general, kitchen, bathroom, hall, livingroom } = this.props.improvements;
         console.log(this.state.pivotSelected);
+
         return (
             <div className="pivot">
                 <Pivot aria-label="Basic Pivot Example" linkSize={PivotLinkSize.large} styles={{
@@ -113,8 +112,21 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
         return Math.ceil(extent * materialPrice);
     }
 
-    private calculateTotalExpense (hourPrice : number, hours : number, materialExpense : number) {
+    private calculateTotalExpense(hourPrice: number, hours: number, materialExpense: number) {
         return Math.ceil(materialExpense + (hourPrice * hours));
+    }
+
+    private calculateNumberOfHours(extent: number, hourPrUnit: number) {
+        return extent * hourPrUnit;
+    }
+
+    private calculateImprovementValue(totalExpense : number, impairmentPercentage : number) {
+        return Math.floor(totalExpense / 100 * impairmentPercentage);
+    }
+
+    //Indsæt skærings måned og år ind i stedet for 2020 og 7
+    private calculateAge(purchaseYear : number, purchaseMonth : number) {
+        return Math.floor(((2020 - purchaseYear) * 12 + 7 - purchaseMonth)/12);
     }
 
     private returnImprovementTypeFunctions(idx: number, improvements: IImprovement[]): ImprovementTypeFunctions {
@@ -142,12 +154,20 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
 
         if (property === 'materialPrice') {
             newImprovements[idx].improvementType.materialsExpense = this.calculateMaterialExpense(+improvement.extent, newValue);
+        } 
+
+        if (property === 'hourPrUnit') {
+            newImprovements[idx].improvementType.hours = this.calculateNumberOfHours(+improvement.extent, newValue)
         }
 
-        if (property === 'hours') {
-            newImprovements[idx].improvementType.totalExpense = this.calculateTotalExpense(improvement.improvementType.hourPrice, newValue, improvement.improvementType.materialsExpense)
+        if (improvement.improvementType.materialsExpense) {
+            const totalExpense : number = this.calculateTotalExpense(improvement.improvementType.hourPrice, improvement.improvementType.hours, improvement.improvementType.materialsExpense)
+            newImprovements[idx].improvementType.totalExpense = totalExpense;
+            newImprovements[idx].improvementType.calculatedValue = this.calculateImprovementValue(totalExpense, improvement.improvementType.impairmentPercentage)
         }
+   
 
+        
         this.props.addImprovement(newImprovements, this.state.pivotSelected);
     }
 
@@ -160,8 +180,18 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
 
         if (property === 'extent') {
             newImprovements[idx].improvementType.materialsExpense = this.calculateMaterialExpense(newValue, improvement.improvementType.materialPrice)
+            if (improvement.improvementType.hourPrUnit) {
+                newImprovements[idx].improvementType.hours = this.calculateNumberOfHours(newValue, improvement.improvementType.hourPrUnit)
+            }
         }
 
+        if (improvement.improvementType.materialsExpense) {
+            const totalExpense : number = this.calculateTotalExpense(improvement.improvementType.hourPrice, improvement.improvementType.hours, improvement.improvementType.materialsExpense)
+            newImprovements[idx].improvementType.totalExpense = totalExpense;
+            newImprovements[idx].improvementType.calculatedValue = this.calculateImprovementValue(totalExpense, improvement.improvementType.impairmentPercentage)
+        }
+
+        
         this.props.addImprovement(newImprovements, this.state.pivotSelected);
     }
 
@@ -171,15 +201,44 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
         this.props.addImprovement(newImprovements, this.state.pivotSelected);
     }
 
-    private updateImpairementCurveChoiceValue = (option: any, improvements: IImprovement[], idx: number) => {
+    private updateImpairementCurveChoiceValue = async (option: any, improvements: IImprovement[], idx: number) => {
         const newImprovements: IImprovement[] = [...improvements];
         newImprovements[idx].impairmentCurve = option.key;
+        const year = newImprovements[idx].purchased.year;
+
+        if (year) {
+            const impairmentTable = new ImpairmentTable();
+            const impairment: IImpairmentResponse = await impairmentTable.getImpairmentValues(year, option.key);
+            newImprovements[idx].improvementType.impairmentPercentage = impairment.impairmentPercentage;
+        }
+
         this.props.addImprovement(newImprovements, this.state.pivotSelected);
     }
 
-    private updatePurchasedValue = (e: any, idx: number, property: string, improvements: IImprovement[]) => {
+    private updatePurchasedValue = async (e: any, idx: number, property: string, improvements: IImprovement[]) => {
         const newImprovements: any[] = [...improvements];
-        newImprovements[idx].purchased[property] = +e.target.value;
+        const improvement : IImprovement = newImprovements[idx];
+        const value: string = e.target.value;
+        newImprovements[idx].purchased[property] = +value;
+
+        if (improvement.purchased.year && improvement.purchased.month) {
+            newImprovements[idx].age = this.calculateAge(improvement.purchased.year, +improvement.purchased.month);
+        }
+
+        if (property === 'year' && value.length === 4) {
+            const impairmentTable = new ImpairmentTable();
+            const impairementCurve = newImprovements[idx].impairmentCurve;
+            let impairment: IImpairmentResponse;
+            if (impairementCurve !== -1) {
+                impairment = await impairmentTable.getImpairmentValues(+value, impairementCurve);
+                newImprovements[idx].improvementType.impairmentPercentage = impairment.impairmentPercentage;
+            } else {
+                impairment = await impairmentTable.getImpairmentValues(+value);
+            }
+
+            newImprovements[idx].improvementType.hourPrice = impairment.hourlySalary;
+            console.log(impairment.hourlySalary);
+        }
         this.props.addImprovement(newImprovements, this.state.pivotSelected);
     }
 
@@ -197,7 +256,7 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
             extent: 0,
             purchased: {
                 month: '',
-                year: '',
+                year: null,
             },
             age: '',
             isImprovement: true,
@@ -213,13 +272,14 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
             improvementType: {
                 hourPrUnit: null,
                 hourPrice: 0,
-                hours: null,
-                impairmentPercentage: null,
-                materialPrice: 0,
+                hours: 0,
+                impairmentPercentage: 0,
+                materialPrice: 0, 
                 takeOverImpairmentPercentage: null,
                 calculatedValue: 0,
                 materialsExpense: 0,
-                totalExpense: 0
+                totalExpense: 0,
+                originalPurchasedExpense: 0
             }
         }
 

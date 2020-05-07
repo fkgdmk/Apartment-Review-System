@@ -1,8 +1,8 @@
 import React from 'react';
-import '../App.css';
-import { PersonInputRow } from './FunctionalComponents';
+import '../../App.css';
+import { PersonInputRow } from '../FunctionalComponents';
 import { IconButton, IIconProps } from 'office-ui-fabric-react';
-import { IPerson } from '../utilities/Interfaces';
+import { IPerson } from '../../utilities/Interfaces';
 
 const plusIcon: IIconProps = { iconName: 'CirclePlus' };
 
