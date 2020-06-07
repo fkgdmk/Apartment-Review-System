@@ -7,29 +7,81 @@ import { Toggle } from 'office-ui-fabric-react/lib/Toggle';
 import { PersonInputRow, ApprovalRow, CustomDatePicker, BottomNavigation, PlusIconButton } from '../FunctionalComponents'
 import { IApproval, IPerson } from '../../utilities/Interfaces';
 import { connect } from 'react-redux';
-import { IState } from '../../App';
+import { IReport } from '../../App';
 import { RouteComponentProps } from 'react-router-dom';
+import { saveReport, downloadReport } from '../../utilities/HelperFunctions'
+import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
+import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
+import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
+import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 
-interface IGeneralInformationProps extends IState, RouteComponentProps {
+interface IGeneralInformationProps extends IReport, RouteComponentProps {
   update: (property: string, value: any) => {};
+  updateId: (id: string) => {};
+  report: IReport;
+}
+
+interface IGeneralInformationState {
+  hideDialog: boolean;
+  unions: IDropdownOption[];
+  addresses: IDropdownOption[];
+  isLoading: boolean;
 }
 
 const options: IChoiceGroupOption[] = [
-  { key: 'buyer', text: 'Køber' }, 
+  { key: 'buyer', text: 'Køber' },
   { key: 'seller', text: 'Sælger' },
 ];
 
-class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
+const dialogContentProps = {
+  type: DialogType.normal,
+  title: 'Raport gemt',
+  closeButtonAriaLabel: 'Luk',
+  subText: 'Ønsker du af downloade rapporten?',
+};
+
+
+class GeneralInformation extends React.Component<IGeneralInformationProps, IGeneralInformationState>{
+
+  constructor(props: IGeneralInformationProps) {
+    super(props);
+    this.state = {
+      hideDialog: true,
+      unions: [],
+      addresses: [],
+      isLoading: true
+    }
+  }
+
   render() {
-    console.log("render");
-    const { address, caseNumber, housingUnion, owner, reconstruction, reviewDate, lastReportDate, takeOverDate, remarks, isBuyer } = this.props.generalInformation;
+    console.log("render", this.props.id);
+    const { unions, addresses, isLoading } = this.state;
+    const { addressId, caseNumber, housingUnion, owner, reconstruction, reviewDate, lastReportDate, takeOverDate, remarks, isBuyer } = this.props.generalInformation;
+
+    if (isLoading) {
+      return <Spinner size={SpinnerSize.large} />;
+    }
+    console.log(this.props.generalInformation)
+
     return (
       <div className="GeneralInformation">
         <div className="col-2">
           <div className="left">
             <TextField key={1} label="BOLIGFORENING" value={housingUnion} onChange={event => this.updateTextField('housingUnion', (event.target as HTMLInputElement).value)} />
-            <TextField key={2} label="LEJLIGHEDENS ADRESSE" value={address} onChange={event => this.updateTextField('address', (event.target as HTMLInputElement).value)} />
-            <TextField key={3} label="ANDELSHAVER" multiline value={owner} onChange={event => this.updateTextField('owner', (event.target as HTMLInputElement).value)} />
+            <Dropdown
+              placeholder="Vælg boligforening"
+              label="BBOLIGFORENING"
+              options={unions}
+              onChange={(event, option) => this.getAddresses(option)}
+            />
+            <Dropdown
+              placeholder="Vælg addresse"
+              label="Addresse"
+              options={addresses}
+              disabled={addresses.length === 0}
+              onChange={(event, option : any) => this.updateTextField('addressId', option.key)}
+            />
+            <TextField key={3} label="ANDELSHAVER" value={owner} onChange={event => this.updateTextField('owner', (event.target as HTMLInputElement).value)} />
             <div>
               <ChoiceGroup options={options} defaultSelectedKey={isBuyer ? 'buyer' : 'seller'} onChange={(event, option) => this.props.update('isBuyer', option?.key === 'buyer' ? true : false)} />
             </div>
@@ -73,13 +125,63 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
           );
         })}
         <PlusIconButton title={'Ny bemærkning'} onClick={this.addRemarkRow} />
-        <BottomNavigation 
+        <BottomNavigation
           component={'GeneralInformation'}
           forwardArrowOnClick={() => this.props.history.push('/improvements')}
+          saveReport={this.handleSaveReportClick}
         />
+        <Dialog
+          hidden={this.state.hideDialog}
+          onDismiss={this.openDialog}
+          dialogContentProps={dialogContentProps}
+        >
+          <DialogFooter>
+            <PrimaryButton onClick={() => downloadReport(this.props.id)} text="Send" />
+            <DefaultButton onClick={this.openDialog} text="Don't send" />
+          </DialogFooter>
+        </Dialog>
       </div>
     );
   }
+
+  public async componentDidMount() {
+    const res = await fetch('http://localhost:8000/unions');
+    const unions = await res.json();
+    console.log(unions)
+    let options : IDropdownOption[] = [];
+    unions.forEach((union : any)=> {
+      options.push({text: union.name, key: union._id})
+    });
+    this.setState({unions : options, isLoading: false})
+  }
+
+  private getAddresses = async (choice : any) => {
+    const res = await fetch('http://localhost:8000/unionsAddresses?unionId=' + choice.key);
+    const addresses = await res.json();
+    console.log(addresses) 
+    let options : IDropdownOption[] = [];
+    addresses.forEach((a : any) => {
+      options.push({text: a.streetName + ' ' + a.number, key: a._id})
+    });
+    this.setState({addresses : options})
+  }
+
+  private handleSaveReportClick = () => {
+    saveReport(this.props.report).then(id => {
+      console.log('id', id)
+      this.props.updateId(id);
+      this.setState({ hideDialog: false })
+    }).catch(err => console.log(err));
+  }
+
+  private openDialog = () => {
+    this.setState({ hideDialog: !this.state.hideDialog })
+  }
+
+  private downloadReport = () => {
+    downloadReport(this.props.id);
+  }
+
 
   private createApprovalRows(): JSX.Element {
     const approvals: IApproval[] = this.props.generalInformation.approvals;
@@ -193,13 +295,16 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, {}>{
   }
 }
 
-const mapStateToProps = (state: IState) => ({
-  generalInformation: state.generalInformation
+const mapStateToProps = (state: IReport) => ({
+  generalInformation: state.generalInformation,
+  id: state.id,
+  report: state
 });
 
 const mapDispatchToProps = (dispatch: any) => {
   return {
-    update: (property: string, value: any) => dispatch({ type: 'UPDATE', payload: value, property: property }),
+    update: (property: string, value: any) => dispatch({ type: 'UPDATE GENERALINFORMATION', payload: value, property: property }),
+    updateId: (id: string) => dispatch({ type: 'UPDATE ID', payload: id })
   }
 }
 

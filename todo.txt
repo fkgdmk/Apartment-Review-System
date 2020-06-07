@@ -1,2 +1,7 @@
 - GeneralInformation component renderer to gange
 - Bugs på GeneralInformation side (bemærkning til godkendelser forsvinder)
+
+Spørgsmål
+- Hvordan håndteres værelser
+- Hvordan håndters nye emner på vedligeholdelse side
+- Hvor skal personer, der også skal modtage mail, stå i rapporten

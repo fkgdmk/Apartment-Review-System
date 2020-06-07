@@ -1,17 +1,20 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
-import { BottomNavigation } from '../FunctionalComponents'
+import { BottomNavigation, PlusIconButton} from '../FunctionalComponents'
 import { Pivot, PivotItem, PivotLinkSize } from 'office-ui-fabric-react/lib/Pivot';
 import '../../styles/Maintenance.css'
 import { colors } from '../../utilities/colors';
 import { IMaintenanceArea } from '../../utilities/Interfaces';
 import { SubjectRow } from './SubjectRow';
 import { Headings, TopHeader } from './Headings';
-import { IState } from '../../App';
+import { IReport } from '../../App';
 import { connect } from 'react-redux';
+import { saveReport } from '../../utilities/HelperFunctions';
 
-interface IMaintenanceProps extends RouteComponentProps, IState {
+
+interface IMaintenanceProps extends RouteComponentProps, IReport {
     updateMaintenace: (value: any, property: string) => void;
+    report : IReport;
 }
 
 interface IMaintenanceState {
@@ -29,7 +32,7 @@ class Maintenance extends React.Component<IMaintenanceProps, IMaintenanceState> 
 
     render() {
         const { general, kitchen, livingroom, hall, bathroom } = this.props.maintenanceAreas;
-        console.log(this.props.maintenanceAreas)
+        console.log(this.props.report)
         return (
             <div>
                 <Pivot aria-label="Basic Pivot Example" linkSize={PivotLinkSize.large} styles={{
@@ -60,6 +63,7 @@ class Maintenance extends React.Component<IMaintenanceProps, IMaintenanceState> 
                 </Pivot>
                 <BottomNavigation
                     component={'Maintenance'}
+                    saveReport={() => saveReport(this.props.report)}
                     backArrowOnClick={() => this.props.history.push('/improvements')}
                 />
             </div>
@@ -131,8 +135,9 @@ class Maintenance extends React.Component<IMaintenanceProps, IMaintenanceState> 
     }
 }
 
-const mapStateToProps = (state: IState) => ({
-    maintenanceAreas: state.maintenanceAreas
+const mapStateToProps = (state: IReport) => ({
+    maintenanceAreas: state.maintenanceAreas,
+    report : state
 });
 
 const mapDispatchToProps = (dispatch: any) => {

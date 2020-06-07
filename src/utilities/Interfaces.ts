@@ -1,6 +1,6 @@
 export interface IGeneralInformation {
     housingUnion: string;
-    address: string;
+    addressId: string;
     owner: string;
     isBuyer: boolean;
     caseNumber: string;

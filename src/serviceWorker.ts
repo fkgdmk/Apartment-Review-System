@@ -25,23 +25,53 @@ type Config = {
   onUpdate?: (registration: ServiceWorkerRegistration) => void;
 };
 
+export function registerSW() {
+  
+    if ('serviceWorker' in navigator) {
+    console.log("test")
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('/sw_cached_site.js')
+        .then(reg => console.log("service worker registered"))
+        .catch(err => console.log("ERROR", err))
+
+
+      if (navigator.onLine) {
+        navigator.serviceWorker.ready.then(registration => {
+          return registration.sync.register('browserOnline')
+        })
+      }
+
+      // navigator.serviceWorker.ready.then(registration => {
+      //   return registration.sync.register('browserOnline');
+      // }).then(() => {
+      //   console.log("sync registerd")
+      // }).catch(() => {
+      //   console.log("sync fail")
+      // })
+    });
+  }
+}
+
 export function register(config?: Config) {
-  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+  if (process.env.NODE_ENV === 'development' && 'serviceWorker' in navigator) {
     // The URL constructor is available in all browsers that support SW.
     const publicUrl = new URL(
       process.env.PUBLIC_URL,
       window.location.href
     );
+    console.log("publicURL", publicUrl);
     if (publicUrl.origin !== window.location.origin) {
       // Our service worker won't work if PUBLIC_URL is on a different origin
       // from what our page is served on. This might happen if a CDN is used to
       // serve assets; see https://github.com/facebook/create-react-app/issues/2374
+      console.log("wtf")
       return;
     }
 
     window.addEventListener('load', () => {
       const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
-
+      console.log(isLocalhost);
       if (isLocalhost) {
         // This is running on localhost. Let's check if a service worker still exists or not.
         checkValidServiceWorker(swUrl, config);
@@ -59,6 +89,8 @@ export function register(config?: Config) {
         registerValidSW(swUrl, config);
       }
     });
+  } else {
+    console.log("ENV:", process.env.NODE_ENV)
   }
 }
 
@@ -66,6 +98,7 @@ function registerValidSW(swUrl: string, config?: Config) {
   navigator.serviceWorker
     .register(swUrl)
     .then(registration => {
+      console.log("SW working")
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         if (installingWorker == null) {

@@ -5,12 +5,15 @@ import { Pivot, PivotItem, PivotLinkSize } from 'office-ui-fabric-react/lib/Pivo
 import { colors } from '../../utilities/colors';
 import '../../styles/ImprovementsStyle.css';
 import { ImprovementCard, ImprovementTypeFunctions } from './ImprovementCard';
-import { IState } from '../../App';
+import { IReport } from '../../App';
 import { connect } from 'react-redux';
 import { IImprovement } from '../../utilities/Interfaces';
 import { ImpairmentTable, IImpairmentResponse } from '../../utilities/TableReader';
-interface IImprovementsProps extends RouteComponentProps, IState {
+import { saveReport, calculateAge, calculateImprovementValue, 
+    calculateMaterialExpense, calculateNumberOfHours, calculateTotalExpense } from '../../utilities/HelperFunctions';
+interface IImprovementsProps extends RouteComponentProps, IReport {
     addImprovement: (value: any, area: string) => {};
+    report : IReport;
 }
 
 interface IImprovementState {
@@ -66,6 +69,7 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
                 <BottomNavigation
                     component={'improvements'}
                     backArrowOnClick={() => this.props.history.push('/general-information')}
+                    saveReport={() => saveReport(this.props.report)}
                     forwardArrowOnClick={() => this.props.history.push('/maintenance')}
                 />
             </div>
@@ -108,27 +112,6 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
 
     }
 
-    private calculateMaterialExpense(extent: number, materialPrice: number) {
-        return Math.ceil(extent * materialPrice);
-    }
-
-    private calculateTotalExpense(hourPrice: number, hours: number, materialExpense: number) {
-        return Math.ceil(materialExpense + (hourPrice * hours));
-    }
-
-    private calculateNumberOfHours(extent: number, hourPrUnit: number) {
-        return extent * hourPrUnit;
-    }
-
-    private calculateImprovementValue(totalExpense : number, impairmentPercentage : number) {
-        return Math.floor(totalExpense / 100 * impairmentPercentage);
-    }
-
-    //Indsæt skærings måned og år ind i stedet for 2020 og 7
-    private calculateAge(purchaseYear : number, purchaseMonth : number) {
-        return Math.floor(((2020 - purchaseYear) * 12 + 7 - purchaseMonth)/12);
-    }
-
     private returnImprovementTypeFunctions(idx: number, improvements: IImprovement[]): ImprovementTypeFunctions {
         return {
             onChangeImpairmentPercentage: (e: any) => this.updateImprovementTypeValue(e, idx, 'impairmentPercentage', improvements),
@@ -153,17 +136,17 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
         newImprovements[idx].improvementType[property] = newValue;
 
         if (property === 'materialPrice') {
-            newImprovements[idx].improvementType.materialsExpense = this.calculateMaterialExpense(+improvement.extent, newValue);
+            newImprovements[idx].improvementType.materialsExpense = calculateMaterialExpense(+improvement.extent, newValue);
         } 
 
         if (property === 'hourPrUnit') {
-            newImprovements[idx].improvementType.hours = this.calculateNumberOfHours(+improvement.extent, newValue)
+            newImprovements[idx].improvementType.hours = calculateNumberOfHours(+improvement.extent, newValue)
         }
 
         if (improvement.improvementType.materialsExpense) {
-            const totalExpense : number = this.calculateTotalExpense(improvement.improvementType.hourPrice, improvement.improvementType.hours, improvement.improvementType.materialsExpense)
+            const totalExpense : number = calculateTotalExpense(improvement.improvementType.hourPrice, improvement.improvementType.hours, improvement.improvementType.materialsExpense)
             newImprovements[idx].improvementType.totalExpense = totalExpense;
-            newImprovements[idx].improvementType.calculatedValue = this.calculateImprovementValue(totalExpense, improvement.improvementType.impairmentPercentage)
+            newImprovements[idx].improvementType.calculatedValue = calculateImprovementValue(totalExpense, improvement.improvementType.impairmentPercentage)
         }
    
 
@@ -179,16 +162,16 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
         newImprovements[idx][property] = newValue;
 
         if (property === 'extent') {
-            newImprovements[idx].improvementType.materialsExpense = this.calculateMaterialExpense(newValue, improvement.improvementType.materialPrice)
+            newImprovements[idx].improvementType.materialsExpense = calculateMaterialExpense(newValue, improvement.improvementType.materialPrice)
             if (improvement.improvementType.hourPrUnit) {
-                newImprovements[idx].improvementType.hours = this.calculateNumberOfHours(newValue, improvement.improvementType.hourPrUnit)
+                newImprovements[idx].improvementType.hours = calculateNumberOfHours(newValue, improvement.improvementType.hourPrUnit)
             }
         }
 
         if (improvement.improvementType.materialsExpense) {
-            const totalExpense : number = this.calculateTotalExpense(improvement.improvementType.hourPrice, improvement.improvementType.hours, improvement.improvementType.materialsExpense)
+            const totalExpense : number = calculateTotalExpense(improvement.improvementType.hourPrice, improvement.improvementType.hours, improvement.improvementType.materialsExpense)
             newImprovements[idx].improvementType.totalExpense = totalExpense;
-            newImprovements[idx].improvementType.calculatedValue = this.calculateImprovementValue(totalExpense, improvement.improvementType.impairmentPercentage)
+            newImprovements[idx].improvementType.calculatedValue = calculateImprovementValue(totalExpense, improvement.improvementType.impairmentPercentage)
         }
 
         
@@ -222,7 +205,7 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
         newImprovements[idx].purchased[property] = +value;
 
         if (improvement.purchased.year && improvement.purchased.month) {
-            newImprovements[idx].age = this.calculateAge(improvement.purchased.year, +improvement.purchased.month);
+            newImprovements[idx].age = calculateAge(improvement.purchased.year, +improvement.purchased.month);
         }
 
         if (property === 'year' && value.length === 4) {
@@ -245,6 +228,11 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
     private updateCheckboxValue(idx: number, property: string, improvements: IImprovement[]) {
         const newImprovements: any[] = [...improvements];
         newImprovements[idx].documentation[property] = !newImprovements[idx].documentation[property]
+        if (property === 'calculated') {
+            newImprovements[idx].documentation.ownWork = !newImprovements[idx].documentation.ownWork;
+            newImprovements[idx].documentation.materials = !newImprovements[idx].documentation.materials;
+        }
+
         this.props.addImprovement(newImprovements, this.state.pivotSelected);
     }
 
@@ -288,8 +276,9 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
     }
 }
 
-const mapStateToProps = (state: IState) => ({
-    improvements: state.improvements
+const mapStateToProps = (state: IReport) => ({
+    improvements: state.improvements,
+    report : state
 });
 
 const mapDispatchToProps = (dispatch: any) => {

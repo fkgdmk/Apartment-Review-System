@@ -9,10 +9,12 @@ import { createStore } from 'redux';
 import { IGeneralInformation, IImprovements, IMaintenanceAreas } from './utilities/Interfaces';
 import { BrowserRouter, Route, Switch, RouteComponentProps } from 'react-router-dom';
 import { populateGeneralArray } from './utilities/HelperFunctions';
+import { act } from 'react-dom/test-utils';
 
 initializeIcons();
 
-export interface IState {
+export interface IReport {
+  id: string;
   generalInformation: IGeneralInformation;
   improvements: IImprovements;
   maintenanceAreas: IMaintenanceAreas;
@@ -20,7 +22,7 @@ export interface IState {
 
 export const fallBackGeneralInformationObj: IGeneralInformation = {
   housingUnion: "",
-  address: "",
+  addressId: "",
   owner: "",
   isBuyer: true,
   caseNumber: "",
@@ -46,7 +48,8 @@ export const fallBackGeneralInformationObj: IGeneralInformation = {
   remarks: ['']
 }
 
-const initialState: IState = {
+const initialState: IReport = {
+  id : '',
   generalInformation: fallBackGeneralInformationObj,
   improvements : {
     general: [],
@@ -64,9 +67,9 @@ const initialState: IState = {
   }
 }
 
-function reducer(state: IState = initialState, action: any): IState {
+function reducer(state: IReport = initialState, action: any): IReport {
   switch (action.type) {
-    case "UPDATE":
+    case "UPDATE GENERALINFORMATION":
       return {
         ...state,
         generalInformation: {
@@ -89,6 +92,11 @@ function reducer(state: IState = initialState, action: any): IState {
           ...state.maintenanceAreas,
           [action.property] : action.payload
         }
+      }
+    case "UPDATE ID":
+      return {
+        ...state,
+        id: action.payload
       }
     default:
       return state;

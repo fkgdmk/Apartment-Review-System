@@ -29,7 +29,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "mocha src/test/*.ts",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -46,5 +46,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/mocha": "^7.0.2",
+    "mocha": "^7.1.2"
   }
 }

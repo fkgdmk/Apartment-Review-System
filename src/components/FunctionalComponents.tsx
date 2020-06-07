@@ -104,8 +104,27 @@ export const PlusIconButton = function (props: any) {
     );
 }
 
+export const SaveButton = function (props : any) {
+    const { onClick, title } = props;
+    const saveIcon: IIconProps = { iconName: 'Save' };
+
+    return (
+        <IconButton
+            iconProps={saveIcon}
+            title={title}
+            ariaLabel="Gem"
+            onClick={onClick}
+            styles={
+                {
+                    icon: { fontSize: 37, color: '#e19304' },
+                    root: { width: 60, height: 50 }
+                }}
+        />
+    );
+}
+
 export const BottomNavigation = function (props: any) {
-    const { component, forwardArrowOnClick, backArrowOnClick } = props;
+    const { component, forwardArrowOnClick, backArrowOnClick, saveReport } = props;
     const forwardBtn: JSX.Element = <ArrowButton
         title={'Næste'}
         arrowDirection={'Forward'}
@@ -120,21 +139,27 @@ export const BottomNavigation = function (props: any) {
 
     if (component === 'GeneralInformation') {
         return (
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div></div>
+                <SaveButton title={'Gem'} onClick={saveReport} />
                 {forwardBtn}
             </div>
         );
     } else if (component === 'Maintenance') {
         console.log("test")
         return (
-            <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 {backBtn}
+                <SaveButton title={'Gem'} onClick={saveReport} />
+                <div></div>
             </div>
         );
     }
     return (
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             {backBtn}
+            <SaveButton title={'Gem'} onClick={saveReport} />
+
             {forwardBtn}
         </div>
     );
