@@ -23,13 +23,14 @@
     "react-scripts": "3.4.1",
     "read-excel-file": "^4.0.6",
     "redux": "^4.0.5",
+    "ts-jest": "^26.1.0",
     "typescript": "^3.7.5",
     "xlsx": "^0.16.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts jest",
+    "test": "jest",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
