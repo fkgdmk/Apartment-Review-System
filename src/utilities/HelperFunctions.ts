@@ -1,11 +1,8 @@
-import { IMaintenanceArea } from "./Interfaces";
+import { IMaintenanceArea, IGeneralInformation } from "./Interfaces";
 import { IReport } from "../App";
-import idb from './idb';
 import { writeData } from '../utilities/utility';
-import { rejects } from "assert";
-// import idb from './idb';
 
-export const populateGeneralArray = (area: string): IMaintenanceArea[] => {
+export const populateMaintenanceAreaArray = (area: string): IMaintenanceArea[] => {
 
     let titles: string[] = ['Eltavle', 'HFI-/HpFI-Relæ', 'Stik, afbrydere, udtag', 'Vinduer og ruder', 'Vedligeholdelse',
         'Rydning', 'Rengøring'];
@@ -34,23 +31,49 @@ export const populateGeneralArray = (area: string): IMaintenanceArea[] => {
     });
 }
 
+export const fallBackGeneralInformationObj: IGeneralInformation = {
+    housingUnion: "",
+    addressId: "",
+    owner: "",
+    isBuyer: true,
+    caseNumber: "",
+    reviewDate: new Date(),
+    lastReportDate: new Date(),
+    takeOverDate: new Date(),
+    persons: [
+        { name: '', mail: '', wantsReport: false, present: true },
+        { name: '', mail: '', wantsReport: false, present: false }
+    ],
+    movedOut: false,
+    reconstruction: false,
+    reconstructionByCurrentOwner: false,
+    reconstructionByFormerOwner: false,
+    approvals: [
+        { name: 'communeNotification', label: 'BYGGESAG / ANMELDELSE TIL KOMMUNEN', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
+        { name: 'vvs', label: 'VVS INSTALLATIONS-GODKENDELSE', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
+        { name: 'drain', label: 'AFLØBSINSTALLATIONS-GODKENDELSE', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
+        { name: 'gas', label: 'GASINSTALLATIONS-GODKENDELSE', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
+        { name: 'el', label: 'EL-INSTALLATIONS-GODKENDELSE', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
+    ],
+    isUpdate: false,
+    remarks: ['']
+}
+
 export const saveReport = (report: IReport): Promise<any> => {
     return new Promise(async (resolve, reject) => {
 
-        if (navigator.onLine) {
-            console.log("ONLINE")
-            try {
-                const id = await sendReportToAPI(report);
-                resolve(id);
-            } catch (err) {
-                console.log(err)
+        try {
+            if (navigator.onLine) {
+                await sendReportToAPI(report);
+                resolve('Raporten blev gemt');
+            } else {
+                await saveReportInIndexedDB(report);
+                resolve('Rapporten bliver gemt, når enheden genetablerer internetforbindelsen');
             }
-        } else {
-            console.log("offline");
-            saveReportInIndexedDB(report);
-            resolve();
+        } catch (err) {
+            reject();
+            console.log(err)
         }
-
     });
 }
 
@@ -67,7 +90,7 @@ function sendReportToAPI(report: IReport): Promise<string> {
             return res.json();
         }).then(res => {
             console.log(res);
-            if (res.status == 200) {
+            if (res.status === 200) {
                 resolve(res.id);
             } else {
                 reject(res.error);
@@ -77,7 +100,7 @@ function sendReportToAPI(report: IReport): Promise<string> {
 }
 
 function saveReportInIndexedDB(report: IReport) {
-    // return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
             navigator.serviceWorker.ready
                 .then(function (sw) {
@@ -88,15 +111,19 @@ function saveReportInIndexedDB(report: IReport) {
                     writeData('sync-reports', reportObj)
                         .then(function () {
                             console.log("WIN")
-                            return sw.sync.register('sync-new-reports');
+                            sw.sync.register('sync-new-reports'); //Return er fjernet
+                            resolve();
                         }).catch(function (er: any) {
                             console.log("error", er)
+                            reject();
                         })
                 })
         } else {
-            sendReportToAPI(report);
+            sendReportToAPI(report)
+                .then(() => resolve())
+                .catch(() => reject());
         }
-    // })
+    })
 }
 
 export const downloadReport = (id: string): Promise<any> => {

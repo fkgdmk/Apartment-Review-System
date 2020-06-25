@@ -31,7 +31,6 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
 
     render() {
         const { general, kitchen, bathroom, hall, livingroom } = this.props.improvements;
-        console.log(this.state.pivotSelected);
 
         return (
             <div className="pivot">
@@ -77,7 +76,6 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
     }
 
     private createImprovementCards(improvements: IImprovement[]): JSX.Element {
-        // const improvements: IGeneralImprovement[] = store.getState().improvements.generalImprovements;
 
         return (
             <div>
@@ -149,8 +147,6 @@ class Improvements extends React.Component<IImprovementsProps, IImprovementState
             newImprovements[idx].improvementType.calculatedValue = calculateImprovementValue(totalExpense, improvement.improvementType.impairmentPercentage)
         }
    
-
-        
         this.props.addImprovement(newImprovements, this.state.pivotSelected);
     }
 

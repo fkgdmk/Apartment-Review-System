@@ -11,8 +11,8 @@ import { IReport } from '../../App';
 import { RouteComponentProps } from 'react-router-dom';
 import { saveReport, downloadReport } from '../../utilities/HelperFunctions'
 import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
-import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
-import { Dropdown, DropdownMenuItemType, IDropdownStyles, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
+import { DefaultButton } from 'office-ui-fabric-react/lib/Button';
+import { Dropdown, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 
 interface IGeneralInformationProps extends IReport, RouteComponentProps {
@@ -26,6 +26,7 @@ interface IGeneralInformationState {
   unions: IDropdownOption[];
   addresses: IDropdownOption[];
   isLoading: boolean;
+  dialogText: string;
 }
 
 const options: IChoiceGroupOption[] = [
@@ -35,9 +36,7 @@ const options: IChoiceGroupOption[] = [
 
 const dialogContentProps = {
   type: DialogType.normal,
-  title: 'Raport gemt',
   closeButtonAriaLabel: 'Luk',
-  subText: 'Ønsker du af downloade rapporten?',
 };
 
 
@@ -49,37 +48,38 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, IGene
       hideDialog: true,
       unions: [],
       addresses: [],
-      isLoading: true
+      isLoading: true,
+      dialogText: ''
     }
   }
 
   render() {
-    console.log("render", this.props.id);
     const { unions, addresses, isLoading } = this.state;
-    const { addressId, caseNumber, housingUnion, owner, reconstruction, reviewDate, lastReportDate, takeOverDate, remarks, isBuyer } = this.props.generalInformation;
+    const { addressId, caseNumber, housingUnion, owner, reconstruction, reconstructionByFormerOwner, movedOut,
+      reviewDate, lastReportDate, takeOverDate, remarks, isBuyer, reconstructionByCurrentOwner } = this.props.generalInformation;
 
     if (isLoading) {
       return <Spinner size={SpinnerSize.large} />;
     }
-    console.log(this.props.generalInformation)
 
     return (
       <div className="GeneralInformation">
         <div className="col-2">
           <div className="left">
-            <TextField key={1} label="BOLIGFORENING" value={housingUnion} onChange={event => this.updateTextField('housingUnion', (event.target as HTMLInputElement).value)} />
             <Dropdown
               placeholder="Vælg boligforening"
               label="BBOLIGFORENING"
               options={unions}
-              onChange={(event, option) => this.getAddresses(option)}
+              selectedKey={housingUnion}
+              onChange={(event, option) => this.onChangeUnion(option)}
             />
             <Dropdown
               placeholder="Vælg addresse"
               label="Addresse"
+              selectedKey={addressId}
               options={addresses}
-              disabled={addresses.length === 0}
-              onChange={(event, option : any) => this.updateTextField('addressId', option.key)}
+              disabled={this.props.generalInformation.addressId === "" && addresses.length === 0}
+              onChange={(event, option: any) => this.updateTextField('addressId', option.key)}
             />
             <TextField key={3} label="ANDELSHAVER" value={owner} onChange={event => this.updateTextField('owner', (event.target as HTMLInputElement).value)} />
             <div>
@@ -102,12 +102,12 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, IGene
         <hr />
         <h2>Generelle Oplysninger</h2>
         <div style={{ display: 'flex' }}>
-          <Toggle label="Lejligheden udflyttet?" onText="Ja" offText="Nej" onChange={(ev, checked) => this.updateToggleField(ev, checked, 'movedOut')} />
+          <Toggle label="Lejligheden udflyttet?" onText="Ja" offText="Nej" checked={movedOut} onChange={(ev, checked) => this.updateToggleField(ev, checked, 'movedOut')} />
           <div className='reconstruction-container'>
-            <Toggle label="Ombygning foretaget?" onText="Ja" offText="Nej" onChange={(ev, checked) => this.updateToggleField(ev, checked, 'reconstruction')} />
+            <Toggle label="Ombygning foretaget?" onText="Ja" offText="Nej" checked={reconstruction} onChange={(ev, checked) => this.updateToggleField(ev, checked, 'reconstruction')} />
             <div style={{ marginLeft: '20px', display: reconstruction ? 'block' : 'none' }}>
-              <Checkbox label="Af denne andelshaver" onChange={(ev, checked) => this.updateCheckboxField(ev, checked, 'reconstructionByCurrentOwner')} />
-              <Checkbox label="Af tidligere andelshaver" onChange={(ev, checked) => this.updateCheckboxField(ev, checked, 'reconstructionByFormerOwner')} />
+              <Checkbox label="Af denne andelshaver" checked={reconstructionByCurrentOwner} onChange={(ev, checked) => this.updateCheckboxField(ev, checked, 'reconstructionByCurrentOwner')} />
+              <Checkbox label="Af tidligere andelshaver" checked={reconstructionByFormerOwner} onChange={(ev, checked) => this.updateCheckboxField(ev, checked, 'reconstructionByFormerOwner')} />
             </div>
           </div>
         </div>
@@ -135,9 +135,9 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, IGene
           onDismiss={this.openDialog}
           dialogContentProps={dialogContentProps}
         >
+          <div>{this.state.dialogText}</div>
           <DialogFooter>
-            <PrimaryButton onClick={() => downloadReport(this.props.id)} text="Send" />
-            <DefaultButton onClick={this.openDialog} text="Don't send" />
+            <DefaultButton onClick={this.openDialog} text="OK" />
           </DialogFooter>
         </Dialog>
       </div>
@@ -145,33 +145,58 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, IGene
   }
 
   public async componentDidMount() {
-    const res = await fetch('http://localhost:8000/unions');
-    const unions = await res.json();
-    console.log(unions)
-    let options : IDropdownOption[] = [];
-    unions.forEach((union : any)=> {
-      options.push({text: union.name, key: union._id})
-    });
-    this.setState({unions : options, isLoading: false})
+    const { housingUnion } = this.props.generalInformation;
+    try {
+      const res = await fetch('http://localhost:8000/union/all');
+      const unions = await res.json();
+
+      let options: IDropdownOption[] = [];
+      unions.forEach((union: any) => {
+        options.push({ text: union.name, key: union._id })
+      });
+      
+      let addresses: IDropdownOption[] = [];
+      if (housingUnion) {
+        addresses = await this.getAddresses(housingUnion)
+      }
+      this.setState({ unions: options, addresses, isLoading: false })
+    } catch (err) {
+      console.log(err);
+    }
   }
 
-  private getAddresses = async (choice : any) => {
-    const res = await fetch('http://localhost:8000/unionsAddresses?unionId=' + choice.key);
-    const addresses = await res.json();
-    console.log(addresses) 
-    let options : IDropdownOption[] = [];
-    addresses.forEach((a : any) => {
-      options.push({text: a.streetName + ' ' + a.number, key: a._id})
-    });
-    this.setState({addresses : options})
+  private onChangeUnion = async (choice: any) => {
+    const addresses = await this.getAddresses(choice.key);
+    this.updateTextField('housingUnion', choice.key)
+    this.setState({ addresses });
+  }
+
+  private getAddresses = (unionId: string): Promise<IDropdownOption[]> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const res = await fetch('http://localhost:8000/union/addresses?unionId=' + unionId);
+        const addresses = await res.json();
+        
+        let options: IDropdownOption[] = [];
+        
+        addresses.forEach((a: any) => {
+          options.push({ text: a.streetName + ' ' + a.number, key: a._id })
+        });
+        resolve(options);
+      } catch (err) {
+        reject();
+      }
+    })
   }
 
   private handleSaveReportClick = () => {
-    saveReport(this.props.report).then(id => {
-      console.log('id', id)
-      this.props.updateId(id);
-      this.setState({ hideDialog: false })
-    }).catch(err => console.log(err));
+    saveReport(this.props.report).then(succesText => {
+      console.log('text', succesText)
+      this.setState({ hideDialog: false, dialogText: succesText })
+    }).catch(err => {
+      console.log(err);
+      this.setState({ hideDialog: false, dialogText: 'Der skete en fejl' })
+    });
   }
 
   private openDialog = () => {
@@ -192,6 +217,7 @@ class GeneralInformation extends React.Component<IGeneralInformationProps, IGene
             <ApprovalRow
               key={idx}
               label={approval.label}
+              approval={approval}
               onChangeRemark={(e: any) => this.updateApprovalRemark(e, idx)}
               onChangeNoRemarkCB={() => this.updateApprovalCheckbox(idx, 'noRemark')}
               onChangeNecessaryCB={() => this.updateApprovalCheckbox(idx, 'necessary')}

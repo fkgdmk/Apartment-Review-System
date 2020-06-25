@@ -21,13 +21,13 @@ self.addEventListener('install', function (event) {
     )
 });
 
-self.addEventListener('activate', (e) => {
+self.addEventListener('activate', (event) => {
     console.log("Service worker activated");
     event.waitUntil(
         caches.keys()
             .then(function (keyList) {
                 return Promise.all(keyList.map(function (key) {
-                    //If the cache key is not equal to static cache or dynamic cache name it's the old cache
+                    //If the cache key is not equal to a element in the static cache or dynamic cache it's the old cache
                     if (key !== staticCache && key !== dynamicCache) {
                         console.log("Removing old cache");
                         return caches.delete(key);
@@ -81,6 +81,8 @@ self.addEventListener('sync', function (event) {
                     }).then(res => {
                         console.log(res);
                         if (res.status == 200) {
+                            window.alert('Raport tilføjet')
+                            postMessage('Raport tilføjet')
                             alert('Sync Done - Reports added');
                             console.log("succes")
                         } else {
@@ -93,6 +95,7 @@ self.addEventListener('sync', function (event) {
         );
     }
 })
+
 
 function getIndexedDBReports() {
     return new Promise((res, rej) => {
@@ -118,6 +121,7 @@ function getIndexedDBReports() {
 
             allRequests.onerror = function () {
                 console.log("error");
+                rej();
             }
         }
     })

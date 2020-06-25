@@ -22,7 +22,7 @@ export const PersonInputRow = function (props: any) {
 
 export const ApprovalRow = function (props: any) {
     const { onChangeNoRemarkCB, onChangeNecessaryCB, necessaryChecked, onChangeRecommendedCB,
-        recommendedChecked, onChangeShownCB, shownChecked, onChangeRemark, label } = props;
+        recommendedChecked, onChangeShownCB, shownChecked, onChangeRemark, label, approval } = props;
 
     const showRemarkField: string = recommendedChecked | necessaryChecked | shownChecked ? 'block' : 'none';
 
@@ -33,16 +33,16 @@ export const ApprovalRow = function (props: any) {
             </div>
             <div className="col-2 checkboxes">
                 <div>
-                    <Checkbox label="Ingen bemærkninger" onChange={onChangeNoRemarkCB} />
-                    <Checkbox label="Nødvendig" onChange={onChangeNecessaryCB} />
+                    <Checkbox label="Ingen bemærkninger" checked={approval.noRemark} onChange={onChangeNoRemarkCB} />
+                    <Checkbox label="Nødvendig" checked={approval.necessary} onChange={onChangeNecessaryCB} />
                 </div>
                 <div>
-                    <Checkbox label="Forevist" onChange={onChangeShownCB} />
-                    <Checkbox label="Anbefalet" onChange={onChangeRecommendedCB} />
+                    <Checkbox label="Forevist" checked={approval.shown} onChange={onChangeShownCB} />
+                    <Checkbox label="Anbefalet" checked={approval.recommended} onChange={onChangeRecommendedCB} />
                 </div>
             </div>
             <div style={{ display: showRemarkField }}>
-                <TextField label="Bemærkning" onChange={onChangeRemark} multiline rows={0} ></TextField>
+                <TextField label="Bemærkning" value={approval.remark} onChange={onChangeRemark} multiline rows={0} ></TextField>
             </div>
         </div>
     );

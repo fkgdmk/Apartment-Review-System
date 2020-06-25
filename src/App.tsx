@@ -7,9 +7,8 @@ import Improvements from './components/Improvements/Improvements';
 import { Provider } from "react-redux";
 import { createStore } from 'redux';
 import { IGeneralInformation, IImprovements, IMaintenanceAreas } from './utilities/Interfaces';
-import { BrowserRouter, Route, Switch, RouteComponentProps } from 'react-router-dom';
-import { populateGeneralArray } from './utilities/HelperFunctions';
-import { act } from 'react-dom/test-utils';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { populateMaintenanceAreaArray, fallBackGeneralInformationObj } from './utilities/HelperFunctions';
 
 initializeIcons();
 
@@ -18,34 +17,6 @@ export interface IReport {
   generalInformation: IGeneralInformation;
   improvements: IImprovements;
   maintenanceAreas: IMaintenanceAreas;
-}
-
-export const fallBackGeneralInformationObj: IGeneralInformation = {
-  housingUnion: "",
-  addressId: "",
-  owner: "",
-  isBuyer: true,
-  caseNumber: "",
-  reviewDate: new Date(),
-  lastReportDate: new Date(),
-  takeOverDate: new Date(),
-  persons: [
-    { name: '', mail: '', wantsReport: false, present: true },
-    { name: '', mail: '', wantsReport: false, present: false }
-  ],
-  movedOut: false,
-  reconstruction: false,
-  reconstructionByCurrentOwner: false,
-  reconstructionByFormerOwner: false,
-  approvals: [
-    { name: 'communeNotification', label: 'BYGGESAG / ANMELDELSE TIL KOMMUNEN', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
-    { name: 'vvs', label: 'VVS INSTALLATIONS-GODKENDELSE', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
-    { name: 'drain', label: 'AFLØBSINSTALLATIONS-GODKENDELSE', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
-    { name: 'gas', label: 'GASINSTALLATIONS-GODKENDELSE', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
-    { name: 'el', label: 'EL-INSTALLATIONS-GODKENDELSE', necessary: false, noRemark: false, recommended: false, shown: false, remark: '' },
-  ],
-  isUpdate: false,
-  remarks: ['']
 }
 
 const initialState: IReport = {
@@ -59,11 +30,11 @@ const initialState: IReport = {
     livingroom: []
   },
   maintenanceAreas: {
-    general: populateGeneralArray('general'),
-    kitchen: populateGeneralArray('kitchen'),
-    bathroom: populateGeneralArray('bathroom'),
-    hall: populateGeneralArray('hall'),
-    livingroom: populateGeneralArray('livingroom')
+    general: populateMaintenanceAreaArray('general'),
+    kitchen: populateMaintenanceAreaArray('kitchen'),
+    bathroom: populateMaintenanceAreaArray('bathroom'),
+    hall: populateMaintenanceAreaArray('hall'),
+    livingroom: populateMaintenanceAreaArray('livingroom')
   }
 }
 
@@ -103,13 +74,8 @@ function reducer(state: IReport = initialState, action: any): IReport {
   }
 }
 
-interface IAppProps extends RouteComponentProps {
-
-}
-
 export const store = createStore(reducer);
 
-// store.dispatch( {type: "UPDATE", amount: 3 })
 export default class App extends React.Component {
   render() {
     return (
